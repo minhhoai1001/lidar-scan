@@ -1,4 +1,4 @@
-# INSTALL ENVIRONMENT FOR RRT SOFTWARE
+# INSTALL ENVIRONMENT
 
 ## 0. Prerequisite
 - Odroid N2+
@@ -45,7 +45,7 @@ echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-## 2. Build RRT software and install environment
+## 2. Build lidar software and install environment
 ### 2.1 Copy the source code to Odroid
 - Folder Structure
     ```
@@ -66,29 +66,28 @@ source ~/.bashrc
     ```
     catkin_make
     ```
-## 4. Run RRT software
+## 4. Run lidar software
 - Run the script
     ```
     ./lidar_start.sh
     ```
 
 ## 5. Set `systemd` for rrt service
-- Create `rrt.service`
+- Create `lidar.service`
     ```
-    sudo nano /etc/systemd/system/rrt.service
+    sudo nano /etc/systemd/system/lidar.service
     ```
-- Copy text below to `rrt.service`
+- Copy text below to `lidar.service`
     ```
     [Unit]
-    Description=RRT software
+    Description=Lidar software
 
     Wants=network.target
     After=syslog.target network-online.target
 
     [Service]
     Type=simple
-    Environment="PYTHONPATH=$PYTHONPATH:/home/admin/.local/lib/python3.8/site-packages/"
-    ExecStart=/usr/src/rrt/start_rrt.sh
+    ExecStart=/usr/src/lidar/lidar_start.sh
     Restart=always
 
     [Install]
@@ -99,13 +98,13 @@ source ~/.bashrc
     ```
     sudo systemctl daemon-reload
     ```
-- Start `rrt.service`
+- Start `lidar.service`
     ```
-    sudo systemctl start rrt
+    sudo systemctl start lidar
     ```
-- Enable `rrt.service` for auto start when turn on
+- Enable `lidar.service` for auto start when turn on
     ```
-    sudo systemctl enable rrt
+    sudo systemctl enable lidar
     ```
 
 ## 7. Build Debian package for update sortware
@@ -122,13 +121,13 @@ That is:
 - `<architecture>`– the hardware architecture your program will be run on.
 
     ```
-    mkdir -p rrt_1.0-1_arm64
+    mkdir -p lidar_1.0-1_arm64
     ```
 ### 7.2. Create the manage file
 #### 7.2.1 Control file
 ```
-mkdir -p rrt_1.0-1_arm64/DEBIAN
-touch rrt_1.0-1_arm64/DEBIAN/control
+mkdir -p lidar_1.0-1_arm64/DEBIAN
+touch lidar_1.0-1_arm64/DEBIAN/control
 ```
 Open the control file with your text editor of choice. The control file is just a list of data fields. For binary packages there is a minimum set of mandatory ones:
 
@@ -140,28 +139,28 @@ Open the control file with your text editor of choice. The control file is just 
 
 #### 7.2.2 Preinstall file
 ```
-touch rrt_1.0-1_arm64/DEBIAN/preinst
-sudo chmod +x rrt_1.0-1_arm64/DEBIAN/preinst
+touch lidar_1.0-1_arm64/DEBIAN/preinst
+sudo chmod +x lidar_1.0-1_arm64/DEBIAN/preinst
 ```
 This script is executed before the package it belongs to is unpacked from its Debian archive (".deb") file. The 'preinst' scripts stop services for packages which are being upgraded until their installation or upgrade is completed (following the successful execution of the 'postinst' script).
 
 For example:
 ```
 	#! /bin/bash
-	echo "stop rrt service"
-	sudo systemctl stop rrt
+	echo "stop lidar service"
+	sudo systemctl stop lidar
 
 	echo "Looking for old versions of rrt ..."
 
-	if [ -d "/usr/src/rrt_v0.4" ];then
-	    sudo rm -rf /usr/src/rrt_v0.4
-	    echo "Removed old rrt from /usr/src ..."
+	if [ -d "/usr/src/lidar_v0.4" ];then
+	    sudo rm -rf /usr/src/lidar_v0.4
+	    echo "Removed old lidar from /usr/src ..."
 	fi
 ```
 #### 7.2.3 Postinstall file
 ```
-touch rrt_1.0-1_arm64/DEBIAN/postinst
-sudo chmod +x rrt_1.0-1_arm64/DEBIAN/postinst
+touch lidar_1.0-1_arm64/DEBIAN/postinst
+sudo chmod +x lidar_1.0-1_arm64/DEBIAN/postinst
 ```
 This script typically completes any required configuration of the package once rrt has been unpacked from its Debian archive (".deb") file. Often, 'postinst' scripts ask users for input, and/or warn them that if they accept default values, they should remember to go back and re-configure that package as needed. The 'postinst' scripts then execute any commands necessary to start or restart a service once a new package has been installed or upgraded.
 
@@ -169,34 +168,34 @@ For example:
 ```
 	#! /bin/bash
 
-	echo "over wrire rrt.service"
-	sudo cp /usr/src/rrt/rrt.service /etc/systemd/system/
+	echo "over wrire lidar.service"
+	sudo cp /usr/src/lidar/lidar.service /etc/systemd/system/
 
-	echo "daemon-reload rrt service"
+	echo "daemon-reload lidar service"
 	sudo systemctl daemon-reload
 
-	echo "start rrt service"
-	sudo systemctl start rrt
+	echo "start lidar service"
+	sudo systemctl start lidar
 ```
 
 ### 7.3. Copy new software version to work directory\
 ```
-mkdir -p rrt_new_version rrt_1.0-1_arm64/usr/src
-cp -r rrt_new_version rrt_1.0-1_arm64/usr/src/rrt
+mkdir -p lidar_new_version lidar_1.0-1_arm64/usr/src
+cp -r lidar_new_version lidar_1.0-1_arm64/usr/src/rrt
 ```
 
 ### 7.4. Build the deb package
 ```
-dpkg-deb --build --root-owner-group rrt_1.0-1_arm64
+dpkg-deb --build --root-owner-group lidar_1.0-1_arm64
 ```
 The `--root-owner-group` flag makes all deb package content owned by the root user, which is the standard way to go. Without such flag, all files and folders would be owned by your user, which might not exist in the system the deb package would be installed to.
 The command above will generate a nice .deb file alongside the working directory or print an error if something is wrong or missing inside the package. If the operation is successful you have a deb package ready for distribution.
 
 ### 7.5. Test your deb package
 ```
-dpkg -i rrt_1.0-1_arm64.deb
+dpkg -i lidar_1.0-1_arm64.deb
 ```
 After installing, you can check the software is updated
 ```
-dpkg -s rrt
+dpkg -s lidar
 ```
