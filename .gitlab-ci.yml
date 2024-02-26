@@ -1,0 +1,32 @@
+stages:          # List of stages for jobs, and their order of execution
+  - build_and_test
+
+build-job:       # This job runs in the build stage, which runs first.
+  image: ros:noetic-ros-base
+  stage: build_and_test
+  before_script:
+    - apt-get update -y
+    - apt-get install ros-noetic-diagnostic-updater -y
+    - apt-get install ros-noetic-laser-geometry -y
+  script:
+    - catkin_make
+    - source devel/setup.sh
+    - roslaunch lidar_scan lidar_scan.launch &
+    - sleep 2
+    - rostopic info /scan
+    - rosservice info /scan_command
+    - ls src/lidar_scan/output
+    - sleep 20
+
+# integrated-test-job:   # This job runs in the test stage.
+#   image: $DOCKER_HUB_USERNAME/ros-noetic-lidar:0.01
+#   stage: test    # It only starts when the job in the build stage completes successfully.
+#   script:
+#     - echo "Test"
+
+# system-test-job:   # This job also runs in the test stage.
+#   stage: test    # It can run at the same time as unit-test-job (in parallel).
+#   script:
+#     - echo "system-test code... This will take about 10 seconds."
+#     - sleep 10
+#     - echo "No lint issues found."

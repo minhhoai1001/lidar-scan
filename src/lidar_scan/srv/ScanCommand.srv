@@ -1,0 +1,9 @@
+int16 grid_type
+int16 x_rrt
+int16 y_rrt
+int16 x1_ROI_AS
+int16 y1_ROI_AS
+int16 x2_ROI_AS
+int16 y2_ROI_AS
+---
+int16 response

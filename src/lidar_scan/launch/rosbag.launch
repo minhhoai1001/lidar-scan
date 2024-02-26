@@ -1,0 +1,4 @@
+<launch>
+    <!-- <node name="play_record" pkg="mrpt_icp_slam_2d" type="play_bag.sh"/> -->
+   <node pkg="rosbag" type="play" name="player" args="$(find rrt_sw)/bag/Move_around_scenario_v2.bag"/>
+</launch>

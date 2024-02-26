@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!--PARAMETERS-->
+  <arg name="bag_name" default="R5bin-1-3_B1-4-5_POS-3-1.bag" />
+  <param name="output_path" type="str" value="$(find lidar_scan)/output"/>
+
+  <!--rviz-->
+  <!-- <node pkg="rviz" type="rviz" name="rviz_nav" args="-d $(find lidar_scan)/rviz/rviz_sick.rviz"></node> -->
+  
+  <!--PLAY BAG FILE-->
+  <node pkg="rosbag" type="play" name="player" args="$(find lidar_scan)/bag/sick_tim561/$(arg bag_name)"/>
+
+  <!--Node prcess-->
+  <node pkg="lidar_scan" type="node_process" name="node_process" 
+      args="$(find lidar_scan)/config/lidar_process.ini" output="screen"></node>
+
+  <node pkg="lidar_scan" type="node_radio" name="node_radio" output="screen" ></node>
+</launch>
